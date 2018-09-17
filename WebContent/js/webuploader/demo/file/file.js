@@ -15,7 +15,7 @@
 		    
 		    // 传参
 		    formData: {
-		       name: 3123
+		       filePath: 'G:\\tempFilePath22'
 		    },
 	
 		    pick: {
@@ -143,6 +143,7 @@
 		// 上传完成
 		uploader.on( 'uploadComplete', function( file ) {
 		    $( '#'+file.id ).find('.progress').fadeOut();
+		    $('.webuploadDelbtn').css('display', 'none');
 		});
 	
 		// 全部上传完成
@@ -162,7 +163,7 @@
 		    }
 		});
 	
-		/**
+		
 		//删除
 		$list.on("click", ".webuploadDelbtn", function () {
 		  var $ele = $(this);
@@ -178,6 +179,6 @@
 		  $('#'+file.id).hide();   
 		  console.log("remove");     
 		});
-		*/
+		
     });
 })( jQuery );
