@@ -8,7 +8,7 @@
   
   <servlet>
 	<servlet-name>upload</servlet-name>
-	<servlet-class>zkh.tool.upload.UploaderServlet</servlet-class>
+	<servlet-class>zkh.tool.servlet.UploadServlet</servlet-class>
   </servlet>
  <servlet-mapping>
   <servlet-name>upload</servlet-name>
