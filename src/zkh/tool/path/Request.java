@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Request {
 	
 	/**
-	 * 获得项目项目所在目录下一级（或多级）指定文件夹的绝对路径
+	 * 获得项目所在目录下一级（或多级）指定文件夹的绝对路径
 	 * @param request
 	 * @param lowerPathName
 	 * @return

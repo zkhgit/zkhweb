@@ -4,6 +4,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Properties文件操作
  *
@@ -12,6 +15,8 @@ import java.util.Properties;
  */
 public class PropertieUtil {
 
+	private static Logger logger = LoggerFactory.getLogger(PropertieUtil.class);
+	
 	/**
 	 * 通过key获取value
 	 * 描述：单个值
@@ -49,7 +54,7 @@ public class PropertieUtil {
 			}
             return values;
         } catch (Exception e) {
-        	e.printStackTrace();
+        	logger.error("属性文件操作：通过key读取value失败");
         	return null;
         }
 	}
