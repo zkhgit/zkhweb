@@ -2,7 +2,7 @@ package zkh.tool.reflex;
 
 import java.lang.reflect.Field;
 
-import zkh.tool.reflex.util.PropertTypeUtil;
+import zkh.tool.reflex.common.PropertTypeUtil;
 
 /**
  * 反射-获取属性值

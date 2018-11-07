@@ -1,8 +1,9 @@
-package zkh.tool.reflex.util;
+package zkh.tool.reflex.common;
 
 import java.util.Date;
 
 import zkh.tool.date.DateUtil;
+import zkh.tool.date.common.Format;
 
 /**
  * Date类型处理
@@ -20,7 +21,7 @@ public class PropertTypeUtil {
 	 */
 	public static Object isDateType(Object object, Class<?> className) {
 		try {
-			return className.toString().equals("class java.util.Date")?DateUtil.getSimpleTime((Date) object):object.toString();
+			return className.toString().equals("class java.util.Date")?DateUtil.dateToStr((Date) object, Format.SIMPLE):object.toString();
 		} catch (Exception e) {
 			return null;
 		}
