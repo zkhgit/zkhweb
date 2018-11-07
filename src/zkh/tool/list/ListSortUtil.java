@@ -31,11 +31,43 @@ import java.util.List;
  * 2018年11月7日 上午10:44:17
  */
 public class ListSortUtil {  
+      
+    /** 
+     * 给list的每个属性都指定是升序还是降序 
+     * 描述：主要方法
+     * 
+     * @param list 
+     * @param sortnameArr  参数数组 
+     * @param typeArr      每个属性对应的升降序数组， true升序（正序），false降序（倒序） 
+     */
+    public static <E> void sort(List<E> list, final String[] sortnameArr, final boolean[] typeArr) {  
+        if(sortnameArr.length != typeArr.length){
+            throw new RuntimeException("属性数组元素个数和升降序数组元素个数不相等");  
+        }  
+        
+        Collections.sort(list, new Comparator<E>() {  
+            public int compare(E a, E b) {  
+                int ret = 0;  
+                try{  
+                    for(int i = 0; i < sortnameArr.length; i++){  
+                        ret = ListSortUtil.compareObject(sortnameArr[i], typeArr[i], a, b);  
+                        if(0 != ret){
+                            break;  
+                        }  
+                    }  
+                }catch (Exception e){  
+                    e.printStackTrace();  
+                }  
+                return ret;  
+            }  
+        });  
+    }  
     
-	/** 
+    /** 
      * 对list的元素按照多个属性名称排序, 
      * list元素的属性可以是数字（byte、short、int、long、float、double等，支持正数、负数、0）、char、String、java.util.Date 
-     *  
+     * 描述：次要方法
+     * 
      * @param lsit 
      * @param sortname 
      *            list元素的属性名称 
@@ -60,37 +92,7 @@ public class ListSortUtil {
                 return ret;  
             }  
         });  
-    }  
-      
-    /** 
-     * 给list的每个属性都指定是升序还是降序 
-     *  
-     * @param list 
-     * @param sortnameArr  参数数组 
-     * @param typeArr      每个属性对应的升降序数组， true升序，false降序 
-     */
-    public static <E> void sort(List<E> list, final String[] sortnameArr, final boolean[] typeArr) {  
-        if(sortnameArr.length != typeArr.length){
-            throw new RuntimeException("属性数组元素个数和升降序数组元素个数不相等");  
-        }  
-        
-        Collections.sort(list, new Comparator<E>() {  
-            public int compare(E a, E b) {  
-                int ret = 0;  
-                try{  
-                    for(int i = 0; i < sortnameArr.length; i++){  
-                        ret = ListSortUtil.compareObject(sortnameArr[i], typeArr[i], a, b);  
-                        if(0 != ret){
-                            break;  
-                        }  
-                    }  
-                }catch (Exception e){  
-                    e.printStackTrace();  
-                }  
-                return ret;  
-            }  
-        });  
-    }  
+    }
   
     /** 
      * 对2个对象按照指定属性名称进行排序 

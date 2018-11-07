@@ -19,7 +19,7 @@ public class Test {
 		
 		// 排序
 		String [] sortNameArr = {"dd", "note"};  
-        boolean [] isAscArr = {true,true};  
+        boolean [] isAscArr = {true,true};
         ListSortUtil.sort(list,sortNameArr,isAscArr);
 		
 		for (int i = 0; i < list.size(); i++) {
