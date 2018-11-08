@@ -30,6 +30,13 @@ public class DataResult {
 		this.obj = obj;
 	}
 	
+	public DataResult(String msg, boolean success, Object obj) {
+		super();
+		this.msg = msg;
+		this.success = success;
+		this.obj = obj;
+	}
+
 	public String getMsg() {
 		return msg;
 	}

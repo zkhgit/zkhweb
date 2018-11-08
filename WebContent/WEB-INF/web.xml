@@ -10,8 +10,18 @@
 	<servlet-name>upload</servlet-name>
 	<servlet-class>zkh.tool.servlet.UploadServlet</servlet-class>
   </servlet>
- <servlet-mapping>
-  <servlet-name>upload</servlet-name>
-  <url-pattern>/upload</url-pattern>
-</servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>upload</servlet-name>
+    <url-pattern>/upload</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>excelExport</servlet-name>
+  	<servlet-class>zkh.tool.excel.demo.ExcelExportServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>excelExport</servlet-name>
+  	<url-pattern>/excelExport</url-pattern>
+  </servlet-mapping>
+  
 </web-app>
