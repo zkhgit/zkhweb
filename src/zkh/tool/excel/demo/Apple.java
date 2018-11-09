@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import zkh.tool.date.DateUtil;
+import zkh.tool.excel.common.ExcelField;
 
 /**
  * 实体Bean
@@ -40,42 +41,56 @@ public class Apple {
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	@ExcelField(column = 0, type = String.class, maxLength = 50, required = true)
 	public String getName() {
 		return name;
 	}
+	
 	public void setName(String name) {
 		this.name = name;
 	}
+	
 	public Float getPrice() {
 		return price;
 	}
+	
 	public void setPrice(Float price) {
 		this.price = price;
 	}
+	
 	public Double getTotalPrice() {
 		return totalPrice;
 	}
+	
 	public void setTotalPrice(Double totalPrice) {
 		this.totalPrice = totalPrice;
 	}
+	
 	public Long getNumber() {
 		return number;
 	}
+	
 	public void setNumber(Long number) {
 		this.number = number;
 	}
+	
 	public Date getProductionDate() {
 		return productionDate;
 	}
+	
 	public void setProductionDate(Date productionDate) {
 		this.productionDate = productionDate;
 	}
+	
 	public Boolean getExpire() {
 		return expire;
 	}
+	
 	public void setExpire(Boolean expire) {
 		this.expire = expire;
 	}

@@ -1,8 +1,16 @@
+
 package zkh.tool.list;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 拆分
+ * 描述：按指定大小拆分List
+ *
+ * 赵凯浩
+ * 2018年11月8日 下午5:27:58
+ */
 public class ListSplitUtil<T> {
 	
 	public static <T> List<List<T>> split(List<T> resList,int count){
