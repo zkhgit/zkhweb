@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<excel>
+	<Apple class="zkh.tool.excel.demo.Apple" sheet="1">
+		<property column="A" name="name" minLength="1" maxLength="50" required="true"/>
+		<property column="B" name="productionDate" dateFormat="yyyy-MM-dd" required="true"/>
+		<property column="C" name="number" minValue="1" maxValue="20" required="true"/>
+		<object name="fushi">
+			<property column="D" name="id" minLength="1" maxLength="50" required="true"/>
+			<property column="E" name="name" minLength="1" maxLength="50" required="true"/>
+		</object>
+		<list name="fushis" size="2">
+			<property column="F" name="id" minLength="1" maxLength="50" required="true"/>
+			<property column="G" name="name" minLength="1" maxLength="50" required="true"/>
+		</list>
+	</Apple>
+</excel>

@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import zkh.tool.date.DateUtil;
-import zkh.tool.excel.common.ExcelField;
 
 /**
  * 实体Bean
@@ -22,6 +21,10 @@ public class Apple {
 	private Long number; // 数量
 	private Date productionDate; // 出产日期
 	private Boolean expire; // 是否过期
+	
+	private Apple apple;
+	private Fushi fushi;
+	private List<Fushi> fushis;
 	
 	public Apple() {
 		super();
@@ -45,8 +48,7 @@ public class Apple {
 	public void setId(int id) {
 		this.id = id;
 	}
-	
-	@ExcelField(column = 0, type = String.class, maxLength = 50, required = true)
+
 	public String getName() {
 		return name;
 	}
@@ -94,7 +96,30 @@ public class Apple {
 	public void setExpire(Boolean expire) {
 		this.expire = expire;
 	}
-
+	
+	public Apple getApple() {
+		return apple;
+	}
+	
+	public void setApple(Apple apple) {
+		this.apple = apple;
+	}
+	
+	public Fushi getFushi() {
+		return fushi;
+	}
+	
+	public void setFushi(Fushi fushi) {
+		this.fushi = fushi;
+	}
+	
+	public List<Fushi> getFushis() {
+		return fushis;
+	}
+	
+	public void setFushis(List<Fushi> fushis) {
+		this.fushis = fushis;
+	}
 	
 	/**
 	 * 组装对象list

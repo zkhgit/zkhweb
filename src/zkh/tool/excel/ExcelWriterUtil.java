@@ -36,7 +36,7 @@ public class ExcelWriterUtil {
 	 * @param response
 	 * @return
 	 */
-	public static <T> DataResult download(List<T> data, String [] headerNames, String [] fieldNames, String fileName, String format, int pageSize, HttpServletResponse response) {
+	public static <T> DataResult export(List<T> data, String [] headerNames, String [] fieldNames, String fileName, String format, int pageSize, HttpServletResponse response) {
 		DataResult result = new DataResult();
 		
 		// 计时器
@@ -78,8 +78,8 @@ public class ExcelWriterUtil {
 	 * @param response
 	 * @return
 	 */
-	public static <T> DataResult downloadSimple(List<T> data, String [] headerNames, String [] fieldNames, String fileName, HttpServletResponse response) {
-		return download(data, headerNames, fieldNames, fileName, null, 10000, response);
+	public static <T> DataResult exportSimple(List<T> data, String [] headerNames, String [] fieldNames, String fileName, HttpServletResponse response) {
+		return export(data, headerNames, fieldNames, fileName, null, 10000, response);
 	}
 	
 	/**
@@ -93,7 +93,7 @@ public class ExcelWriterUtil {
 	 * @param response
 	 * @return
 	 */
-	public static <T> DataResult downloadBigData(List<T> data, String [] headerNames, String [] fieldNames, String fileName, String format, int pageSize, HttpServletResponse response) {
+	public static <T> DataResult exportBigData(List<T> data, String [] headerNames, String [] fieldNames, String fileName, String format, int pageSize, HttpServletResponse response) {
 		ExcelWriter writer = new Excel2007BigDataWriter();
 		DataResult result = new DataResult();
 		

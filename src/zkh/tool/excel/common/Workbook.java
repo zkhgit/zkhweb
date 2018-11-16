@@ -1,5 +1,7 @@
 package zkh.tool.excel.common;
 
+import java.io.FileInputStream;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -14,55 +16,48 @@ public class Workbook {
 
 	/**
 	 * 获取Workbook
-	 * @param path
+	 * @param excelPath
 	 * @return
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook create(String path) {
-		org.apache.poi.ss.usermodel.Workbook workbook = null; 
-		
-		if (path.endsWith(".xls")) {
-			workbook = new HSSFWorkbook();
-        } else if (path.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook();
-        } else {
-            throw new RuntimeException("文件出错，非excel文件");
+	public static org.apache.poi.ss.usermodel.Workbook create(FileInputStream fis, String excelPath) throws Exception{
+		org.apache.poi.ss.usermodel.Workbook workbook = null;     
+		if (excelPath.endsWith(".xls")) {
+			workbook = new HSSFWorkbook(fis);
+        } else if (excelPath.endsWith(".xlsx")) {
+        	workbook = new XSSFWorkbook(fis);
         }
-		
 		return workbook;
 	}
 	
 	/**
 	 * 获取Workbook
 	 * 描述：用于大数据量
-	 * @param path
-	 * @param openBigData
+	 * @param excelPath
 	 * @return
+	 * @throws Exception
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook createBigData() throws Exception{
-		return new XSSFWorkbook();
+	public static org.apache.poi.ss.usermodel.Workbook createBigData(FileInputStream fis, String excelPath) throws Exception{
+		return new SXSSFWorkbook(new XSSFWorkbook(fis), 100);
 	}
 	
 	/**
 	 * 获取Workbook
-	 * @param path
+	 * @param excelPath
 	 * @param openBigData
 	 * @return
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook create(String path, boolean openBigData) {
-		org.apache.poi.ss.usermodel.Workbook workbook = null; 
-		
+	public static org.apache.poi.ss.usermodel.Workbook create(FileInputStream fis, String excelPath, boolean openBigData) throws Exception{
+		org.apache.poi.ss.usermodel.Workbook workbook = null;
 		if(!!openBigData) {
-			workbook = new SXSSFWorkbook(100);
-		}else if (path.endsWith(".xls")) {
-			workbook = new HSSFWorkbook();
-        } else if (path.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook();
-        } else {
-            throw new RuntimeException("文件出错，非excel文件");
+			workbook = new SXSSFWorkbook(new XSSFWorkbook(fis), 100);
+		}else if (excelPath.endsWith(".xls")) {
+			workbook = new HSSFWorkbook(fis);
+        } else if (excelPath.endsWith(".xlsx")) {
+        	workbook = new XSSFWorkbook(fis);
         }
-		
 		return workbook;
 	}
     
     private Workbook() {}
+    
 }
