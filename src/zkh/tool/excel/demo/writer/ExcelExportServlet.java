@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import zkh.tool.excel.ExcelWriterUtil;
+import zkh.tool.excel.ExcelExport;
 import zkh.tool.excel.demo.Apple;
 
 /**
@@ -24,7 +24,12 @@ public class ExcelExportServlet extends HttpServlet{
 		String[] headreNames = new String[] {"ID", "名1称", "单价", "生产1日期"};
 	    String[] fieldNames = new String[] {"id", "name", "price", "productionDate"};
 	    String fileName = "测试导2007.xlsx";
-		ExcelWriterUtil.exportBigData(Apple.组装List(), headreNames, fieldNames, fileName, null, 11000, response);
+		try {
+			ExcelExport.exportBigData(Apple.组装List(), headreNames, fieldNames, fileName, null, 11000, response);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Override

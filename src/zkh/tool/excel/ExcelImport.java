@@ -15,7 +15,7 @@ import zkh.tool.excel.logic.ExcelReader;
  * 赵凯浩
  * 2018年11月15日 上午10:13:57
  */
-public class ExcelReaderUtil {
+public class ExcelImport {
 
 	// 错误信息集合
 	public static List<String> errorList = null;
@@ -32,7 +32,7 @@ public class ExcelReaderUtil {
 		// 导入开始前新建errorList
 		errorList = new ArrayList<String>();
 		FileInputStream fis = new FileInputStream(new File(excelPath));
-		Workbook workbook = zkh.tool.excel.common.Workbook.create(fis, excelPath);
+		Workbook workbook = zkh.tool.excel.logic.Workbook.reader(fis, excelPath);
 		// 获取Excel数据list
 		ExcelReader excelReader = new ExcelReader();
 		List<T> list = excelReader.readExcel(excelPath, xmlPath, elementName, workbook);
@@ -55,7 +55,7 @@ public class ExcelReaderUtil {
 		// 导入开始前新建errorList
 		errorList = new ArrayList<String>();
 		FileInputStream fis = new FileInputStream(new File(excelPath));
-		Workbook workbook = zkh.tool.excel.common.Workbook.createBigData(fis, excelPath);
+		Workbook workbook = zkh.tool.excel.logic.Workbook.readerBigData(fis, excelPath);
 		// 获取Excel数据list
 		ExcelReader excelReader = new ExcelReader();
 		List<T> list = excelReader.readExcel(excelPath, xmlPath, elementName, workbook);

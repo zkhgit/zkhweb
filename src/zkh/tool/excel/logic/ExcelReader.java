@@ -21,7 +21,7 @@ import zkh.tool.date.DateUtil;
 import zkh.tool.xml.XmlUtil;
 
 /**
- * POI导出格式Excel文件
+ * POI导入格式Excel文件
  *
  * 赵凯浩
  * 2018年11月16日 下午3:56:12
@@ -61,11 +61,14 @@ public class ExcelReader {
 	
 	
 	/**
-     * 读取excel文件
-     * @param path文件路径
-     * @param clazz实体类
-     * @return 返回clazz集合
-     */
+	 * 读取excel文件
+	 * @param excelPath excel文件路径
+	 * @param xmlPath xml文件路径
+	 * @param elementName Xml模板中指定的导入子模版标签名
+	 * @param workbook
+	 * @return
+	 * @throws Exception
+	 */
 	public <T extends Object> List<T> readExcel(String excelPath, String xmlPath, String elementName, Workbook workbook) throws Exception{        
 		/**1、Xml导入配置读取*************************************************************************/
 		// 获取整体Document
