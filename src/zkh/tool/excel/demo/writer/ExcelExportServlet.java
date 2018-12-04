@@ -1,6 +1,7 @@
 package zkh.tool.excel.demo.writer;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +26,9 @@ public class ExcelExportServlet extends HttpServlet{
 	    String[] fieldNames = new String[] {"id", "name", "price", "productionDate"};
 	    String fileName = "测试导2007.xlsx";
 		try {
-			ExcelExport.exportBigData(Apple.组装List(), headreNames, fieldNames, fileName, null, 11000, response);
+			List<Apple> list = Apple.组装List();
+			ExcelExport<Apple> excelExport = new ExcelExport<Apple>(fileName, response);
+			excelExport.exportBigData("用户数据", list, headreNames, fieldNames);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

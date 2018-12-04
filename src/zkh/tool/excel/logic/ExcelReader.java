@@ -16,9 +16,12 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zkh.tool.date.DateUtil;
 import zkh.tool.xml.XmlUtil;
+
 
 /**
  * POI导入格式Excel文件
@@ -27,6 +30,8 @@ import zkh.tool.xml.XmlUtil;
  * 2018年11月16日 下午3:56:12
  */
 public class ExcelReader {
+	
+	private static Logger logger = LoggerFactory.getLogger(ExcelReader.class);
 
 	/**Xml配置参数**********************************************************************/
 	// 最小长度（字符串）
@@ -59,50 +64,58 @@ public class ExcelReader {
 	// Excel当前行中列字母下标+"列"
 	private String cellLetterIndex = "";
 	
-	
+	// 全局异常
+	public String exceptionMsg = null;
+
 	/**
 	 * 读取excel文件
-	 * @param excelPath excel文件路径
 	 * @param xmlPath xml文件路径
 	 * @param elementName Xml模板中指定的导入子模版标签名
 	 * @param workbook
 	 * @return
 	 * @throws Exception
 	 */
-	public <T extends Object> List<T> readExcel(String excelPath, String xmlPath, String elementName, Workbook workbook) throws Exception{        
-		/**1、Xml导入配置读取*************************************************************************/
-		// 获取整体Document
-		Document document = XmlUtil.getDocument(xmlPath);
-		// 获取指定子节点
-		Element element = XmlUtil.getElement(document, elementName);
-        /**1、Xml导入配置读取*************************************************************************/
-        
-        /**2、Excel数据读取*************************************************************************/
- 		// 最终组装的数据list
+	public <T extends Object> List<T> readExcel(String xmlPath, String elementName, Workbook workbook) {
+		// 最终组装的数据list
  		List<T> list = new ArrayList<T>(); Sheet sheet = null;
- 		// 获得sheet（指定导入sheet下标数组）
- 		String[] sheets = element.attributeValue("sheet") == null ? new String [] {} : element.attributeValue("sheet").split(",");
- 		if(sheets.length > 0) {
- 			for (int i = 0; i < sheets.length; i++) {
-	 			// 得到一个工作表
-		        sheet = workbook.getSheetAt(Integer.parseInt(sheets[i]) - 1);
-		        // 获取行总数
-		        int rows = sheet.getLastRowNum() + 1;
-		        // 得到数据list
-		        if(rows > 0) {list.addAll(getList(sheet, rows, element));};
-			}
- 		}else {
- 			Iterator<Sheet> itSheet = workbook.sheetIterator();
- 			while (itSheet.hasNext()) {
- 				// 得到一个工作表
-		        sheet = itSheet.next();
-		        // 获取行总数
-		        int rows = sheet.getLastRowNum() + 1;
-		        // 得到数据list
-		        if(rows > 0) {list.addAll(getList(sheet, rows, element));};
-			}
- 		}
-        /**2、Excel数据读取*************************************************************************/
+		try {
+			/**1、Xml导入配置读取*************************************************************************/
+			// 获取整体Document
+			Document document = XmlUtil.getDocument(xmlPath);
+			// 获取指定子节点
+			Element element = XmlUtil.getElement(document, elementName);
+	        /**1、Xml导入配置读取*************************************************************************/
+	        
+	        /**2、Excel数据读取*************************************************************************/
+	 		// 获得sheet（指定导入sheet下标数组）
+	 		String[] sheets = element.attributeValue("sheet") == null ? new String [] {} : element.attributeValue("sheet").split(",");
+	 		if(sheets.length > 0) {
+	 			for (int i = 0; i < sheets.length; i++) {
+		 			// 得到一个工作表
+			        sheet = workbook.getSheetAt(Integer.parseInt(sheets[i]) - 1);
+			        // 获取行总数
+			        int rows = sheet.getLastRowNum() + 1;
+			        // 得到数据list
+			        if(rows > 0) {list.addAll(getList(sheet, rows, element));};
+				}
+	 		}else {
+	 			Iterator<Sheet> itSheet = workbook.sheetIterator();
+	 			while (itSheet.hasNext()) {
+	 				// 得到一个工作表
+			        sheet = itSheet.next();
+			        // 获取行总数
+			        int rows = sheet.getLastRowNum() + 1;
+			        // 得到数据list
+			        if(rows > 0) {list.addAll(getList(sheet, rows, element));};
+				}
+	 		}
+	        /**2、Excel数据读取*************************************************************************/
+		} catch (Exception e) {
+			logger.error("public <T extends Object> List<T> readExcel(String xmlPath, String elementName, Workbook workbook)");
+	        logger.error("导入Excel时: 读取excel文件出错!");
+	        exceptionMsg = "导入Excel时: 读取excel文件出错!";
+	        e.printStackTrace();
+		}
         return list;
 	}
 	
@@ -116,26 +129,31 @@ public class ExcelReader {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Object> List<T> getList(Sheet sheet, int rows, Element element) throws Exception{
+	private <T extends Object> List<T> getList(Sheet sheet, int rows, Element element) {
 		List<T> list = new ArrayList<>(); T obj = null; Row row = null;
-		
-		// 获得Class
-		Class<T> clazz = element.attributeValue("class") == null ? null : (Class<T>) Class.forName(element.attributeValue("class"));
-        for (int i = 1; i < rows; i++) {
-        	// 获取excel一行数据
-            row = sheet.getRow(i);
-            // 创建对象
-            obj = clazz.newInstance();
-            // 空行判断
-            boolean isRowNull = iSRowNull(row);
-            if(!isRowNull) {
-            	// 组装bean对象
-            	setObject(obj, clazz, row, element, false, false);            	
-            	// 添加到集合中
-            	list.add(obj);
-            }
-        }
-        
+		try {
+			// 获得Class
+			Class<T> clazz = element.attributeValue("class") == null ? null : (Class<T>) Class.forName(element.attributeValue("class"));
+	        for (int i = 1; i < rows; i++) {
+	        	// 获取excel一行数据
+	            row = sheet.getRow(i);
+	            // 创建对象
+	            obj = clazz.newInstance();
+	            // 空行判断
+	            boolean isRowNull = iSRowNull(row);
+	            if(!isRowNull) {
+	            	// 组装bean对象
+	            	setObject(obj, clazz, row, element, false, false);            	
+	            	// 添加到集合中
+	            	list.add(obj);
+	            }
+	        }
+		} catch (Exception e) {
+			logger.error("private <T extends Object> List<T> getList(Sheet sheet, int rows, Element element)");
+	        logger.error("导入Excel时: 提取数据出错!");
+	        exceptionMsg = "导入Excel时: 提取数据出错!";
+	        e.printStackTrace();
+		}
         return list;
 	}
 	
@@ -150,48 +168,55 @@ public class ExcelReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> Object setObject(Object obj,Class<?> clazz,Row row, Element element, boolean isObject, boolean isList) throws Exception{
-		// 每次开始新的一行时，重置行错误信息
-		if(!isObject && !isList) {rowErrorMsg = "";};
-		// Excel中当前行下标（从0开始）
-		rowIndex = row.getRowNum();
-		// 行错误信息
-		rowErrorMsgBase = "[第" + (rowIndex+1) + "行]=>";
-		
-		/**1、简单属性处理*******************************************************************************/
-		// 获取Element下指定名称的所有子节点
-        List<Element> elements = XmlUtil.getElementList(element, "property");
-        // 设置对象里的属性
-        for (int i = 0; i < elements.size(); i++) {			
-        	setValue(obj, clazz, row, elements.get(i), 0);
+	private <T> Object setObject(Object obj,Class<?> clazz,Row row, Element element, boolean isObject, boolean isList) {
+		try {
+			// 每次开始新的一行时，重置行错误信息
+			if(!isObject && !isList) {rowErrorMsg = "";};
+			// Excel中当前行下标（从0开始）
+			rowIndex = row.getRowNum();
+			// 行错误信息
+			rowErrorMsgBase = "[第" + (rowIndex+1) + "行]=>";
+			
+			/**1、简单属性处理*******************************************************************************/
+			// 获取Element下指定名称的所有子节点
+	        List<Element> elements = XmlUtil.getElementList(element, "property");
+	        // 设置对象里的属性
+	        for (int i = 0; i < elements.size(); i++) {			
+	        	setValue(obj, clazz, row, elements.get(i), 0);
+			}
+	        /**1、简单属性处理*******************************************************************************/
+	          
+	        /**2、Object属性处理***************************************************************************/
+	        List<Element> elementObjects = XmlUtil.getElementList(element, "object");
+	        Element elementObject = null;
+	        // 设置对象里的属性
+	        for (int i = 0; i < elementObjects.size(); i++) {
+	        	elementObject = elementObjects.get(i);
+	        	setObjectValue(obj, clazz, row, elementObject);
+			}
+	        /**2、Object属性处理***************************************************************************/
+	        
+	        /**3、list属性处理****************************************************************************/
+	        List<Element> elementLists = XmlUtil.getElementList(element, "list");
+	        Element elementList = null;
+	        for (int i = 0; i < elementLists.size(); i++) {
+	        	elementList = elementLists.get(i);
+	        	setListValue(obj, clazz, row, elementList);
+			}
+	        /**3、list属性处理****************************************************************************/
+	       
+	        /**4、记录行错误信息****************************************************************************/
+	        if(!isObject && !isList && StringUtils.isNotBlank(rowErrorMsg)) {        	
+	        	errorList.add(rowErrorMsgBase + rowErrorMsg);
+	        	rowErrorMsg = "";
+	        }
+	        /**4、记录行错误信息****************************************************************************/
+		} catch (Exception e) {
+			logger.error("private <T> Object setObject(Object obj,Class<?> clazz,Row row, Element element, boolean isObject, boolean isList)");
+	        logger.error("导入Excel时: 创建对象出错!");
+	        exceptionMsg = "导入Excel时: 创建对象出错!";
+	        e.printStackTrace();
 		}
-        /**1、简单属性处理*******************************************************************************/
-          
-        /**2、Object属性处理***************************************************************************/
-        List<Element> elementObjects = XmlUtil.getElementList(element, "object");
-        Element elementObject = null;
-        // 设置对象里的属性
-        for (int i = 0; i < elementObjects.size(); i++) {
-        	elementObject = elementObjects.get(i);
-        	setObjectValue(obj, clazz, row, elementObject);
-		}
-        /**2、Object属性处理***************************************************************************/
-        
-        /**3、list属性处理****************************************************************************/
-        List<Element> elementLists = XmlUtil.getElementList(element, "list");
-        Element elementList = null;
-        for (int i = 0; i < elementLists.size(); i++) {
-        	elementList = elementLists.get(i);
-        	setListValue(obj, clazz, row, elementList);
-		}
-        /**3、list属性处理****************************************************************************/
-       
-        /**4、记录行错误信息****************************************************************************/
-        if(!isObject && !isList && StringUtils.isNotBlank(rowErrorMsg)) {        	
-        	errorList.add(rowErrorMsgBase + rowErrorMsg);
-        	rowErrorMsg = "";
-        }
-        /**4、记录行错误信息****************************************************************************/
         return obj;
 	}
 	
@@ -206,25 +231,32 @@ public class ExcelReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T setValue(T obj,Class<?> clazz,Row row, Element element, int num) throws Exception{
-		/**1、get、set方法操作*****************************************************************************/
-		// 属性名称
-		String fieldName = element.attributeValue("name");
-		// 属性的get方法名称
-		String getMethodName = getMethodName(fieldName, "get");
-		// get方法
-		Method getMethod = clazz.getMethod(getMethodName);
-		// get方法返回类型
-		Class<?> fieldMethodReturnClass = getMethod.getReturnType();
-		// 属性的set方法名称
-		String setMethodName = getMethodName(fieldName, "set");
-		// set方法
-		Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
-		/**1、get、set方法操作*****************************************************************************/
-		
-		/**2、赋值**************************************************************************************/
-		setMethod.invoke(obj, new Object[]{getCellValue(fieldMethodReturnClass, row, element, num)});
-		/**2、赋值**************************************************************************************/
+	private <T> T setValue(T obj,Class<?> clazz,Row row, Element element, int num) {
+		try {
+			/**1、get、set方法操作*****************************************************************************/
+			// 属性名称
+			String fieldName = element.attributeValue("name");
+			// 属性的get方法名称
+			String getMethodName = Common.getMethodName(fieldName, "get");
+			// get方法
+			Method getMethod = clazz.getMethod(getMethodName);
+			// get方法返回类型
+			Class<?> fieldMethodReturnClass = getMethod.getReturnType();
+			// 属性的set方法名称
+			String setMethodName = Common.getMethodName(fieldName, "set");
+			// set方法
+			Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
+			/**1、get、set方法操作*****************************************************************************/
+			
+			/**2、赋值**************************************************************************************/
+			setMethod.invoke(obj, new Object[]{getCellValue(fieldMethodReturnClass, row, element, num)});
+			/**2、赋值**************************************************************************************/
+		} catch (Exception e) {
+			logger.error("private <T> T setValue(T obj,Class<?> clazz,Row row, Element element, int num)");
+	        logger.error("导入Excel时: 简单属性赋值出错!");
+	        exceptionMsg = "导入Excel时: 简单属性赋值出错!";
+	        e.printStackTrace();
+		}
 		return obj;
 	}
 	
@@ -238,28 +270,35 @@ public class ExcelReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T setObjectValue(T obj, Class<?> clazz, Row row, Element element) throws Exception{
-		/**1、get、set方法操作*****************************************************************************/
-		// 属性名称
-		String fieldName = element.attributeValue("name");
-		// 属性的get方法名称
-		String getMethodName = getMethodName(fieldName, "get");
-		// get方法
-		Method getMethod = clazz.getMethod(getMethodName);
-		// get方法返回类型
-		Class<?> fieldMethodReturnClass = getMethod.getReturnType();
-		// 属性的set方法名称
-		String setMethodName = getMethodName(fieldName, "set");
-		// set方法
-		Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
-		/**1、get、set方法操作*****************************************************************************/
-		
-		/**2、赋值**************************************************************************************/
-		// 创建Object的对象
-		Object temp = fieldMethodReturnClass.newInstance();
-		temp = setObject(temp, fieldMethodReturnClass, row, element, false, true);
-		setMethod.invoke(obj, new Object[]{temp});
-		/**2、赋值**************************************************************************************/
+	private <T> T setObjectValue(T obj, Class<?> clazz, Row row, Element element) {
+		try {
+			/**1、get、set方法操作*****************************************************************************/
+			// 属性名称
+			String fieldName = element.attributeValue("name");
+			// 属性的get方法名称
+			String getMethodName = Common.getMethodName(fieldName, "get");
+			// get方法
+			Method getMethod = clazz.getMethod(getMethodName);
+			// get方法返回类型
+			Class<?> fieldMethodReturnClass = getMethod.getReturnType();
+			// 属性的set方法名称
+			String setMethodName = Common.getMethodName(fieldName, "set");
+			// set方法
+			Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
+			/**1、get、set方法操作*****************************************************************************/
+			
+			/**2、赋值**************************************************************************************/
+			// 创建Object的对象
+			Object temp = fieldMethodReturnClass.newInstance();
+			temp = setObject(temp, fieldMethodReturnClass, row, element, false, true);
+			setMethod.invoke(obj, new Object[]{temp});
+			/**2、赋值**************************************************************************************/
+		} catch (Exception e) {
+			logger.error("private <T> T setObjectValue(T obj, Class<?> clazz, Row row, Element element)");
+	        logger.error("导入Excel时: Object属性赋值出错!");
+	        exceptionMsg = "导入Excel时: Object属性赋值出错!";
+	        e.printStackTrace();
+		}
 		return obj;
 	}
 	
@@ -273,49 +312,56 @@ public class ExcelReader {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> Object setListValue(T obj,Class<?> clazz,Row row, Element element) throws Exception{
-		/**1、get、set方法操作*****************************************************************************/
-		// 属性名称
-		String fieldName = element.attributeValue("name");
-		// 属性的get方法名称
-		String getMethodName = getMethodName(fieldName, "get");
-		// get方法
-		Method getMethod = clazz.getMethod(getMethodName);
-		// get方法返回类型
-		Class<?> fieldMethodReturnClass = getMethod.getReturnType();
-		// 属性的set方法名称
-		String setMethodName = getMethodName(fieldName, "set");
-		// set方法
-		Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
-		/**1、get、set方法操作*****************************************************************************/
-		
-		/**2、赋值**************************************************************************************/
-		// 2.1、创建List对象
-		List<Object> tempList = new ArrayList<Object>();
-		// 2.2、List的长度
-		int size = Integer.parseInt(element.attributeValue("size"));
-		// 2.3、得到泛型里的class类型对象
-		ParameterizedType pt = (ParameterizedType) getMethod.getGenericReturnType();
-		Class<?> listClass = (Class<?>)pt.getActualTypeArguments()[0];
-		// 2.4、获取Element下指定名称的所有子节点
-		List<Element> elementsList = XmlUtil.getElementList(element, "property");
-		// 2.5、该list泛型对象在xml中配置的属性个数
-		int elementsListSize = elementsList == null ? 0 : elementsList.size();
-		// 2.6、如果list泛型的属性数量为0，setList(null)
-		if(elementsListSize == 0) setMethod.invoke(obj, new Object[]{null});
-		// 2.7、循环给list里添加指定个数的对象
-		Object temp = null;
-		for (int i = 0; i < size; i++) {
-			// 创建一个list泛型里的对象
-			temp = listClass.newInstance();
-            // 设置list泛型对象的属性
-            for (int j = 0; j < elementsList.size(); j++) {			
-            	setValue(temp, listClass, row, elementsList.get(j), i*elementsListSize);
-    		}
-			tempList.add(temp);
+	private <T> Object setListValue(T obj,Class<?> clazz,Row row, Element element) {
+		try {
+			/**1、get、set方法操作*****************************************************************************/
+			// 属性名称
+			String fieldName = element.attributeValue("name");
+			// 属性的get方法名称
+			String getMethodName = Common.getMethodName(fieldName, "get");
+			// get方法
+			Method getMethod = clazz.getMethod(getMethodName);
+			// get方法返回类型
+			Class<?> fieldMethodReturnClass = getMethod.getReturnType();
+			// 属性的set方法名称
+			String setMethodName = Common.getMethodName(fieldName, "set");
+			// set方法
+			Method setMethod = clazz.getMethod(setMethodName, new Class[]{fieldMethodReturnClass});
+			/**1、get、set方法操作*****************************************************************************/
+			
+			/**2、赋值**************************************************************************************/
+			// 2.1、创建List对象
+			List<Object> tempList = new ArrayList<Object>();
+			// 2.2、List的长度
+			int size = Integer.parseInt(element.attributeValue("size"));
+			// 2.3、得到泛型里的class类型对象
+			ParameterizedType pt = (ParameterizedType) getMethod.getGenericReturnType();
+			Class<?> listClass = (Class<?>)pt.getActualTypeArguments()[0];
+			// 2.4、获取Element下指定名称的所有子节点
+			List<Element> elementsList = XmlUtil.getElementList(element, "property");
+			// 2.5、该list泛型对象在xml中配置的属性个数
+			int elementsListSize = elementsList == null ? 0 : elementsList.size();
+			// 2.6、如果list泛型的属性数量为0，setList(null)
+			if(elementsListSize == 0) setMethod.invoke(obj, new Object[]{null});
+			// 2.7、循环给list里添加指定个数的对象
+			Object temp = null;
+			for (int i = 0; i < size; i++) {
+				// 创建一个list泛型里的对象
+				temp = listClass.newInstance();
+	            // 设置list泛型对象的属性
+	            for (int j = 0; j < elementsList.size(); j++) {			
+	            	setValue(temp, listClass, row, elementsList.get(j), i*elementsListSize);
+	    		}
+				tempList.add(temp);
+			}
+			setMethod.invoke(obj, new Object[]{tempList});
+			/**2、赋值**************************************************************************************/
+		} catch (Exception e) {
+			logger.error("private <T> Object setListValue(T obj,Class<?> clazz,Row row, Element element)");
+	        logger.error("导入Excel时: List属性赋值出错!");
+	        exceptionMsg = "导入Excel时: List属性赋值出错!";
+	        e.printStackTrace();
 		}
-		setMethod.invoke(obj, new Object[]{tempList});
-		/**2、赋值**************************************************************************************/
 		return obj;
 	}
 	
@@ -327,184 +373,190 @@ public class ExcelReader {
 	 * @return
 	 * @throws Exception 
 	 */
-	private Object getCellValue(Class<?> fieldClass, Row row, Element element, int num) throws Exception{
-		// Excel当前行的当前列下标（从0开始）
-		cellIndex = strToNum(element.attributeValue("column")) + num;
-		// 得到Excel行中指定列
-		Cell cell = row.getCell(cellIndex);
-		if(Date.class == fieldClass) {
-			// 日期格式
-			if(cell == null || cell.getDateCellValue() == null) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "date");
-				return null;
-			}else {		
-				// 时间格式转换
-				Date date = cell.getDateCellValue();
-				// 指定的日期格式
-				dateFormat = element.attributeValue("dateFormat");
-				if(StringUtils.isBlank(dateFormat)) {				
+	private Object getCellValue(Class<?> fieldClass, Row row, Element element, int num) {
+		try {
+			// Excel当前行的当前列下标（从0开始）
+			cellIndex = strToNum(element.attributeValue("column")) + num;
+			// 得到Excel行中指定列
+			Cell cell = row.getCell(cellIndex);
+			if(Date.class == fieldClass) {
+				// 日期格式
+				if(cell == null || cell.getDateCellValue() == null) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "date");
+					return null;
+				}else {		
+					// 时间格式转换
+					Date date = cell.getDateCellValue();
+					// 指定的日期格式
+					dateFormat = element.attributeValue("dateFormat");
+					if(StringUtils.isBlank(dateFormat)) {				
+						return date;
+					}else {				
+						// 先转为指定格式的日期字符串
+						dateStr = DateUtil.dateToStr(date, dateFormat);
+						// 再转为指定格式的日期
+						SimpleDateFormat format = new SimpleDateFormat(dateFormat); 
+						date = format.parse(dateStr);
+					}
 					return date;
-				}else {				
-					// 先转为指定格式的日期字符串
-					dateStr = DateUtil.dateToStr(date, dateFormat);
-					// 再转为指定格式的日期
-					SimpleDateFormat format = new SimpleDateFormat(dateFormat); 
-					date = format.parse(dateStr);
 				}
-				return date;
-			}
-		}else if(boolean.class == fieldClass || Boolean.class == fieldClass){
-			// 布尔类型
-			if(cell == null || cell.getBooleanCellValue()) {
+			}else if(boolean.class == fieldClass || Boolean.class == fieldClass){
+				// 布尔类型
+				if(cell == null || cell.getBooleanCellValue()) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "boolean");
+					return false;
+				}
+				return cell.getBooleanCellValue();
+			}else if(fieldClass == int.class || fieldClass == Integer.class){
+				// 整数类型
+				if(null == cell) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return 0;
+				}
+				
 				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "boolean");
-				return false;
-			}
-			return cell.getBooleanCellValue();
-		}else if(fieldClass == int.class || fieldClass == Integer.class){
-			// 整数类型
-			if(null == cell) {
+				rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
+				return (int)Math.floor(cell.getNumericCellValue());
+			}else if(fieldClass == short.class || fieldClass == Short.class){
+				// 短整形
+				if(null == cell) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return 0;
+				}
+				
+				// 列错误信息添加到行
+				rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
+				return (short)Math.floor(cell.getNumericCellValue());
+			}else if(fieldClass == long.class || fieldClass == Long.class){
+				//长整形类型
+				if(null == cell) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return 0l;
+				}
+				
+				// 列错误信息添加到行
+				rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
+				return (long)Math.floor(cell.getNumericCellValue());
+			}else if(fieldClass == float.class || fieldClass == Float.class){
+				// 单精度类型
+				if(null == cell) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return 0.0f;
+				}
+				
+				// 列错误信息添加到行
+				rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
+				return (float)Math.floor(cell.getNumericCellValue());
+			}else if(fieldClass == double.class || fieldClass == Double.class){
+				// 双精度类型
+				if(null == cell) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return 0.00d;
+				}
+				
+				// 列错误信息添加到行
+				rowErrorMsg +=  addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
+				return Math.floor(cell.getNumericCellValue());
+			}else if(fieldClass == BigDecimal.class) {
+				// 大数字
+				if(null == cell || null == cell.getStringCellValue()) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "int");
+					return new BigDecimal(0);
+				}
+				
 				// 列错误信息添加到行
 				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return 0;
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
-			return (int)Math.floor(cell.getNumericCellValue());
-		}else if(fieldClass == short.class || fieldClass == Short.class){
-			// 短整形
-			if(null == cell) {
+				return new BigDecimal(cell.getStringCellValue());
+			}else if(fieldClass == String.class){
+				// Excel当前行中列为字符串的字符串
+				String stringCellValue = "";
+				// 字符串
+				if(null == cell || null == cell.getStringCellValue()) {
+					// 列错误信息添加到行
+					rowErrorMsg += addCellErrorMsg(element, null, null, "string");
+					return null;
+				}else {
+						stringCellValue = cell.getStringCellValue();
+				}
 				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return 0;
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
-			return (short)Math.floor(cell.getNumericCellValue());
-		}else if(fieldClass == long.class || fieldClass == Long.class){
-			//长整形类型
-			if(null == cell) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return 0l;
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
-			return (long)Math.floor(cell.getNumericCellValue());
-		}else if(fieldClass == float.class || fieldClass == Float.class){
-			// 单精度类型
-			if(null == cell) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return 0.0f;
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
-			return (float)Math.floor(cell.getNumericCellValue());
-		}else if(fieldClass == double.class || fieldClass == Double.class){
-			// 双精度类型
-			if(null == cell) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return 0.00d;
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg +=  addCellErrorMsg(element, null, cell.getNumericCellValue(), "int");
-			return Math.floor(cell.getNumericCellValue());
-		}else if(fieldClass == BigDecimal.class) {
-			// 大数字
-			if(null == cell || null == cell.getStringCellValue()) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-				return new BigDecimal(0);
-			}
-			
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, null, null, "int");
-			return new BigDecimal(cell.getStringCellValue());
-		}else if(fieldClass == String.class){
-			// Excel当前行中列为字符串的字符串
-			String stringCellValue = "";
-			// 字符串
-			if(null == cell || null == cell.getStringCellValue()) {
-				// 列错误信息添加到行
-				rowErrorMsg += addCellErrorMsg(element, null, null, "string");
-				return null;
+				rowErrorMsg += addCellErrorMsg(element, stringCellValue, null, "string");
+				return stringCellValue;
 			}else {
-					stringCellValue = cell.getStringCellValue();
+				return null;
 			}
-			// 列错误信息添加到行
-			rowErrorMsg += addCellErrorMsg(element, stringCellValue, null, "string");
-			return stringCellValue;
-		}else {
-			return null;
+		} catch (Exception e) {
+			logger.error("private Object getCellValue(Class<?> fieldClass, Row row, Element element, int num)");
+	        logger.error("导入Excel时: 得到Cell的值并转换成实体中属性的类型出错!");
+	        exceptionMsg = "导入Excel时: 得到Cell的值并转换成实体中属性的类型出错!";
+	        e.printStackTrace();
+	        return null;
 		}
 	}
 	
 	
 	/**
-	 * 得到列cell的下标
+	 * 得到列cell的数字下标
 	 * 描述：A:65，B:66，C:67，D:68，E:69，F:70，G:71，H:72，I:73，J:74，K:75，L:76，M:77，N:78，O:79，P:80，Q:81，R:82，S:83，T:84，U:85，V:86，W:87，X:88，Y:89，Z:90
 	 * @param column Xml文件中配置的字母形式下标
 	 * @return
 	 */
-	public int strToNum(String column) {
-		if(column == null) return -1;
-		// 转大写
-		column = column.toUpperCase();
-		// 转字符数组
-		char[] chars = column.toCharArray();
+	private int strToNum(String column) {
 		// 计算得到最终的有效下标
 		int index = 0;
-		for (int i = 0; i < chars.length; i++) {
-			index += ((int)chars[i]-65);
+		try {			
+			if(column == null) return -1;
+			// 转大写
+			column = column.toUpperCase();
+			// 转字符数组
+			char[] chars = column.toCharArray();
+			for (int i = 0; i < chars.length; i++) {
+				index += ((int)chars[i]-65);
+			}
+		} catch (Exception e) {
+			logger.error("private int strToNum(String column)");
+	        logger.error("导入Excel时: 得到列cell的数字下标出错!");
+	        exceptionMsg = "导入Excel时: 得到列cell的数字下标出错!";
+	        e.printStackTrace();
 		}
 		return index;
 	}
 	
 	/**
-	 * 得到列cell的下标
+	 * 得到列cell的字母编号
 	 * 描述：A:65，B:66，C:67，D:68，E:69，F:70，G:71，H:72，I:73，J:74，K:75，L:76，M:77，N:78，O:79，P:80，Q:81，R:82，S:83，T:84，U:85，V:86，W:87，X:88，Y:89，Z:90
 	 * @param column Xml文件中配置的字母形式下标
 	 * @return
 	 */
-	public String numToStr(int num) {
-		// 字母A65
-		num += 65;
-		// 数组长度
-		int len = num/90 + (num%90 > 0 ? 1 : 0);
+	private String numToStr(int num) {
 		// 转字符数组
 		String chars = "";
-		for (int i = 1; i <= len; i++) {
-			if(i != len) {				
-				chars += 'Z'; 
-			}else {
-				chars += (char)(num%90);
-			}
+		try {
+			// 字母A65
+			num += 65;
+			// 数组长度
+			int len = num/90 + (num%90 > 0 ? 1 : 0);
+			for (int i = 1; i <= len; i++) {
+				if(i != len) {				
+					chars += 'Z'; 
+				}else {
+					chars += (char)(num%90);
+				}
+			}			
+		} catch (Exception e) {
+			logger.error("private String numToStr(int num)");
+	        logger.error("导入Excel时: 得到列cell的字母编号出错!");
+	        exceptionMsg = "导入Excel时: 得到列cell的字母编号出错!";
+	        e.printStackTrace();
 		}
 		return chars;
-	}
-	
-	/**
-	 * 获得属性的get/set方法名称
-	 * @param fieldName 属性名称
-	 * @param getOrSet "get"或"set"
-	 * @return
-	 */
-	public String getMethodName(String fieldName, String getOrSet) {
-		// 大写的属性首字母
-		String initials = fieldName.substring(0, 1).toUpperCase();
-		// 属性从第二位开始的名称
-		String surplus = fieldName.length() > 1 ? fieldName.substring(1) : "";
-		// 属性的get方法名称
-		String getMethod = getOrSet + initials + surplus; 
-		return getMethod;
 	}
 	
 	/**
@@ -514,13 +566,20 @@ public class ExcelReader {
 	 * @param rows 总行数
 	 * @return
 	 */
-	public boolean iSRowNull(Row row) {
-		Cell cell = null;
-		for (int i = 0; i < 2; i++) {
-			cell = row.getCell(i);
-			if(cell == null) {
-				return true;
+	private boolean iSRowNull(Row row) {
+		try {			
+			Cell cell = null;
+			for (int i = 0; i < 2; i++) {
+				cell = row.getCell(i);
+				if(cell == null) {
+					return true;
+				}
 			}
+		} catch (Exception e) {
+			logger.error("private boolean iSRowNull(Row row)");
+	        logger.error("导入Excel时: row空行判断出错!");
+	        exceptionMsg = "导入Excel时: row空行判断出错!";
+	        e.printStackTrace();
 		}
 		return false;
 	}
@@ -530,71 +589,78 @@ public class ExcelReader {
 	 * @param element
 	 * @return
 	 */
-	public String addCellErrorMsg(Element element, String stringValue, Double numberValue, String type) {
-		// 列编号
-		cellLetterIndex = numToStr(cellIndex) + "列："; 
-		// 重置列错误信息
-		cellErrorMsg = "";
-		// 是否可以为空
-		required = element.attributeValue("required");
-		if(StringUtils.isBlank(stringValue) && numberValue==null && "true".equals(required)) {
-			cellErrorMsg += "不能为空，";
+	private String addCellErrorMsg(Element element, String stringValue, Double numberValue, String type) {
+		try {
+			// 列编号
+			cellLetterIndex = numToStr(cellIndex) + "列："; 
+			// 重置列错误信息
+			cellErrorMsg = "";
+			// 是否可以为空
+			required = element.attributeValue("required");
+			if(StringUtils.isBlank(stringValue) && numberValue==null && "true".equals(required)) {
+				cellErrorMsg += "不能为空，";
+				
+				if(StringUtils.isBlank(type)) {
+				}else if("string".equals(type)) {
+					// 长度最小值
+					minLength = element.attributeValue("minLength");
+					// 长度最大值
+					maxLength = element.attributeValue("maxLength");
+					
+					if(StringUtils.isNotBlank(minLength) && StringUtils.isNotBlank(maxLength)) {
+						cellErrorMsg += ("长度需大于" + minLength + "且小于" + maxLength + "，");
+					}else if(StringUtils.isNotBlank(minLength)) {
+						cellErrorMsg += ("长度不能小于" + minLength + "，");
+					}else if(StringUtils.isNotBlank(maxLength)) {
+						cellErrorMsg += ("长度不能大于" + maxLength + "，");
+					}			
+				}else if("int".equals(type)) {
+					// 大小最小值
+					minValue = element.attributeValue("minValue");
+					// 大小最大值
+					maxValue = element.attributeValue("maxValue");
+					if(StringUtils.isNotBlank(minValue) && StringUtils.isNotBlank(maxValue)) {
+						cellErrorMsg += ("数值需大于" + minValue + "且小于" + maxValue + "，");
+					}else if(StringUtils.isNotBlank(minValue)) {
+						cellErrorMsg += ("数值不能小于" + minValue + "，");
+					}else if(StringUtils.isNotBlank(maxValue)) {
+						cellErrorMsg += ("数值不能大于" + maxValue + "，");
+					}
+				}
+			}
 			
 			if(StringUtils.isBlank(type)) {
 			}else if("string".equals(type)) {
 				// 长度最小值
 				minLength = element.attributeValue("minLength");
+				if(StringUtils.isNotBlank(minLength) && StringUtils.isNotBlank(stringValue) && stringValue.length() < Integer.parseInt(minLength)) {
+					cellErrorMsg += ("长度不能小于" + minLength + "，");
+				}
 				// 长度最大值
 				maxLength = element.attributeValue("maxLength");
-				
-				if(StringUtils.isNotBlank(minLength) && StringUtils.isNotBlank(maxLength)) {
-					cellErrorMsg += ("长度需大于" + minLength + "且小于" + maxLength + "，");
-				}else if(StringUtils.isNotBlank(minLength)) {
-					cellErrorMsg += ("长度不能小于" + minLength + "，");
-				}else if(StringUtils.isNotBlank(maxLength)) {
+				if(StringUtils.isNotBlank(maxLength) && StringUtils.isNotBlank(stringValue) && stringValue.length() > Integer.parseInt(maxLength)) {
 					cellErrorMsg += ("长度不能大于" + maxLength + "，");
 				}			
 			}else if("int".equals(type)) {
 				// 大小最小值
 				minValue = element.attributeValue("minValue");
+				if(StringUtils.isNotBlank(minValue) && null != numberValue && (int)Math.floor(numberValue) < Integer.parseInt(minValue)) {
+					cellErrorMsg += ("数值不能小于" + minValue + "，");
+				}
 				// 大小最大值
 				maxValue = element.attributeValue("maxValue");
-				if(StringUtils.isNotBlank(minValue) && StringUtils.isNotBlank(maxValue)) {
-					cellErrorMsg += ("数值需大于" + minValue + "且小于" + maxValue + "，");
-				}else if(StringUtils.isNotBlank(minValue)) {
-					cellErrorMsg += ("数值不能小于" + minValue + "，");
-				}else if(StringUtils.isNotBlank(maxValue)) {
+				if(StringUtils.isNotBlank(maxValue) && null != numberValue && (int)Math.floor(numberValue) > Integer.parseInt(maxValue)) {
 					cellErrorMsg += ("数值不能大于" + maxValue + "，");
 				}
 			}
+			
+			cellErrorMsg = cellErrorMsg.length() > 0 ? (cellLetterIndex + cellErrorMsg.substring(0, cellErrorMsg.length()-1) + "；") : "";
+		} catch (Exception e) {
+			logger.error("private String addCellErrorMsg(Element element, String stringValue, Double numberValue, String type)");
+	        logger.error("导入Excel时: 列表错误（验证）信息组装出错!");
+	        exceptionMsg = "导入Excel时: 列表错误（验证）信息组装出错!";
+	        e.printStackTrace();
 		}
-		
-		if(StringUtils.isBlank(type)) {
-		}else if("string".equals(type)) {
-			// 长度最小值
-			minLength = element.attributeValue("minLength");
-			if(StringUtils.isNotBlank(minLength) && StringUtils.isNotBlank(stringValue) && stringValue.length() < Integer.parseInt(minLength)) {
-				cellErrorMsg += ("长度不能小于" + minLength + "，");
-			}
-			// 长度最大值
-			maxLength = element.attributeValue("maxLength");
-			if(StringUtils.isNotBlank(maxLength) && StringUtils.isNotBlank(stringValue) && stringValue.length() > Integer.parseInt(maxLength)) {
-				cellErrorMsg += ("长度不能大于" + maxLength + "，");
-			}			
-		}else if("int".equals(type)) {
-			// 大小最小值
-			minValue = element.attributeValue("minValue");
-			if(StringUtils.isNotBlank(minValue) && null != numberValue && (int)Math.floor(numberValue) < Integer.parseInt(minValue)) {
-				cellErrorMsg += ("数值不能小于" + minValue + "，");
-			}
-			// 大小最大值
-			maxValue = element.attributeValue("maxValue");
-			if(StringUtils.isNotBlank(maxValue) && null != numberValue && (int)Math.floor(numberValue) > Integer.parseInt(maxValue)) {
-				cellErrorMsg += ("数值不能大于" + maxValue + "，");
-			}
-		}
-		
-		cellErrorMsg = cellErrorMsg.length() > 0 ? (cellLetterIndex + cellErrorMsg.substring(0, cellErrorMsg.length()-1) + "；") : "";
 		return cellErrorMsg;
 	}
 	

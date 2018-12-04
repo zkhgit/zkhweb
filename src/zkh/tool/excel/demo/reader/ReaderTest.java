@@ -14,9 +14,10 @@ public class ReaderTest {
 		// 导入数据
 		List<Apple> list;
 		try {
-			list = ExcelImport.importData("G:\\test.xlsx", "G:\\Excels.xml", "Apple");
+			ExcelImport excelImport = new ExcelImport();
+			list = excelImport.importData("F:\\test.xlsx", "F:\\Excels.xml", "Apple");
 			System.out.println(JSONArray.fromObject(list));
-			System.out.println(ExcelImport.errorList);
+			System.out.println(excelImport.errorList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

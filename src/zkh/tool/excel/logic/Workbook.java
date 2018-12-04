@@ -1,10 +1,13 @@
 package zkh.tool.excel.logic;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 获取Workbook
@@ -13,6 +16,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * 2018年11月9日 下午5:14:59
  */
 public class Workbook {
+	
+	private static Logger logger = LoggerFactory.getLogger(Workbook.class);
 
 	// 导入**********************************************************************/
 	/**
@@ -20,13 +25,18 @@ public class Workbook {
 	 * @param excelPath
 	 * @return
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook reader(FileInputStream fis, String excelPath) throws Exception{
+	public static org.apache.poi.ss.usermodel.Workbook reader(InputStream fis, String excelPath) {
 		org.apache.poi.ss.usermodel.Workbook workbook = null;     
-		if (excelPath.endsWith(".xls")) {
-			workbook = new HSSFWorkbook(fis);
-        } else if (excelPath.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook(fis);
-        }
+		try {			
+			if (excelPath.endsWith(".xls")) {
+				workbook = new HSSFWorkbook(fis);
+			} else if (excelPath.endsWith(".xlsx")) {
+				workbook = new XSSFWorkbook(fis);
+			}
+		} catch (Exception e) {
+			logger.error("public static org.apache.poi.ss.usermodel.Workbook reader(FileInputStream fis, String excelPath)");
+			logger.error("导出Excel时出错: 获取Workbook出错!");
+		}
 		return workbook;
 	}
 	
@@ -37,28 +47,16 @@ public class Workbook {
 	 * @return
 	 * @throws Exception
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook readerBigData(FileInputStream fis, String excelPath) throws Exception{
-		return new SXSSFWorkbook(new XSSFWorkbook(fis), 100);
-	}
-	
-	/**
-	 * 获取Workbook
-	 * @param excelPath
-	 * @param openBigData
-	 * @return
-	 */
-	public static org.apache.poi.ss.usermodel.Workbook reader(FileInputStream fis, String excelPath, boolean openBigData) throws Exception{
+	public static org.apache.poi.ss.usermodel.Workbook readerBigData(FileInputStream fis, String excelPath) {
 		org.apache.poi.ss.usermodel.Workbook workbook = null;
-		if(!!openBigData) {
+		try {
 			workbook = new SXSSFWorkbook(new XSSFWorkbook(fis), 100);
-		}else if (excelPath.endsWith(".xls")) {
-			workbook = new HSSFWorkbook(fis);
-        } else if (excelPath.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook(fis);
-        }
+		} catch (Exception e) {
+			logger.error("public static org.apache.poi.ss.usermodel.Workbook readerBigData(FileInputStream fis, String excelPath)");
+			logger.error("导出Excel时出错: 获取Workbook出错!");
+		}
 		return workbook;
 	}
-	
 	
 	// 导出*************************************************************************************/
 	/**
@@ -66,13 +64,18 @@ public class Workbook {
 	 * @param excelPath
 	 * @return
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook writer(String excelPath) throws Exception{
+	public static org.apache.poi.ss.usermodel.Workbook writer(String excelPath) {
 		org.apache.poi.ss.usermodel.Workbook workbook = null;     
-		if (excelPath.endsWith(".xls")) {
-			workbook = new HSSFWorkbook();
-        } else if (excelPath.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook();
-        }
+		try {			
+			if (excelPath.endsWith(".xls")) {
+				workbook = new HSSFWorkbook();
+			} else if (excelPath.endsWith(".xlsx")) {
+				workbook = new XSSFWorkbook();
+			}
+		} catch (Exception e) {
+			logger.error("public static org.apache.poi.ss.usermodel.Workbook writer(String excelPath)");
+			logger.error("导出Excel时出错: 获取Workbook出错!");
+		}
 		return workbook;
 	}
 	
@@ -83,25 +86,14 @@ public class Workbook {
 	 * @return
 	 * @throws Exception
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook writerBigData(String excelPath) throws Exception{
-		return new SXSSFWorkbook(new XSSFWorkbook(), 100);
-	}
-	
-	/**
-	 * 获取Workbook
-	 * @param excelPath
-	 * @param openBigData
-	 * @return
-	 */
-	public static org.apache.poi.ss.usermodel.Workbook writer(String excelPath, boolean openBigData) throws Exception{
+	public static org.apache.poi.ss.usermodel.Workbook writerBigData(String excelPath) {
 		org.apache.poi.ss.usermodel.Workbook workbook = null;
-		if(!!openBigData) {
+		try {			
 			workbook = new SXSSFWorkbook(new XSSFWorkbook(), 100);
-		}else if (excelPath.endsWith(".xls")) {
-			workbook = new HSSFWorkbook();
-        } else if (excelPath.endsWith(".xlsx")) {
-        	workbook = new XSSFWorkbook();
-        }
+		} catch (Exception e) {
+			logger.error("public static org.apache.poi.ss.usermodel.Workbook writerBigData(String excelPath)");
+			logger.error("导出Excel时出错: 获取Workbook出错!");
+		}
 		return workbook;
 	}
     
