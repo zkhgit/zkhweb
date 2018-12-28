@@ -37,6 +37,24 @@ public class PropertieUtil {
 	}
 	
 	/**
+	 * 通过key获取value
+	 * 描述：单个值
+	 * @param is 文件字节
+	 * @param key
+	 * @return
+	 */
+	public static String findValueByKey(InputStream is, String key) {
+        try {     
+    		Properties properties = new Properties();
+            properties.load(is);
+            return properties.getProperty(key);
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	return null;
+        }
+	}
+	
+	/**
 	 * 通过keys获取values
 	 * 描述：多个值
 	 * @param path 文件绝对路径
@@ -47,6 +65,28 @@ public class PropertieUtil {
         try {     
         	String[] values = new String[keys.length];
     		InputStream is = new FileInputStream(path); 
+    		Properties properties = new Properties();
+            properties.load(is);
+            for (int i = 0; i < keys.length; i++) {
+            	values[i] = properties.getProperty(keys[i]);
+			}
+            return values;
+        } catch (Exception e) {
+        	logger.error("属性文件操作：通过key读取value失败");
+        	return null;
+        }
+	}
+	
+	/**
+	 * 通过keys获取values
+	 * 描述：多个值
+	 * @param is 文件字节
+	 * @param key
+	 * @return
+	 */
+	public static String[] findValueByKeys(InputStream is, String[] keys) {
+        try {     
+        	String[] values = new String[keys.length];
     		Properties properties = new Properties();
             properties.load(is);
             for (int i = 0; i < keys.length; i++) {
