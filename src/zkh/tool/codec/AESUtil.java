@@ -1,4 +1,4 @@
-package zkh.tool.encrypt;
+package zkh.tool.codec;
 
 import java.security.Key;
 
