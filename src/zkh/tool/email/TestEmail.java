@@ -38,7 +38,7 @@ public class TestEmail {
         emailInfo.setContent("内容：<h1>邮件,测试</h1><a href='http://edu.sstrc.gov.cn'>继续教育</a>");
          
         // 发送
-        boolean flag = HtmlEmailUtil.send(emailInfo);
+        boolean flag = EmailUtil.send(emailInfo);
         System.out.println(flag ? "发送邮件成功" : "发送邮件失败");
     }
 }

@@ -1,12 +1,17 @@
 package zkh.tool.email;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.DataSourceResolver;
 import org.apache.commons.mail.EmailAttachment;
-import org.apache.commons.mail.HtmlEmail;
+import org.apache.commons.mail.ImageHtmlEmail;
+import org.apache.commons.mail.resolver.DataSourceCompositeResolver;
+import org.apache.commons.mail.resolver.DataSourceFileResolver;
+import org.apache.commons.mail.resolver.DataSourceUrlResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,13 +19,14 @@ import zkh.tool.propertie.PropertieUtil;
 
 /**
  * 发送邮件Util
+ * 描述：基于commons-email-1.5.jar、javax.mail-1.6.2.jar
  *
  * 赵凯浩
  * 2018年12月28日 上午10:27:38
  */
-public class HtmlEmailUtil {
+public class EmailUtil {
 	
-	private static final Logger logger = LoggerFactory.getLogger(HtmlEmailUtil.class);
+	private static final Logger logger = LoggerFactory.getLogger(EmailUtil.class);
 	private static Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$"); // 判断字符串是否为整数 
 	
 	/**
@@ -32,7 +38,7 @@ public class HtmlEmailUtil {
 	 * @return
 	 */
 	public static boolean send(EmailInfo emailInfo) {
-		InputStream is = HtmlEmailUtil.class.getClassLoader().getResourceAsStream("config.properties");
+		InputStream is = EmailUtil.class.getClassLoader().getResourceAsStream("config.properties");
 		String[] emailKeys = new String[] {
 				"email.serverHost", // 服务器地址（QQ邮箱、网易等各不相同）
 				"email.senderAddress", // 发送者账号地址（邮箱账号）
@@ -41,7 +47,7 @@ public class HtmlEmailUtil {
 				"email.charset", // 设置邮件消息的字符集
 				"email.socketConnectionTimeout", // 客户端从服务器建立连接的超时时间（毫秒）
 				"email.socketTimeout", // 客户端从服务器读取数据的超时时间（毫秒）
-				"email.debug" // 是否开启debug模式
+				"email.debug", // 是否开启debug模式
 				};
 		String[] emailValues = PropertieUtil.findValueByKeys(is, emailKeys);
 		return send(emailValues, emailInfo);
@@ -64,7 +70,7 @@ public class HtmlEmailUtil {
      */
     public static boolean send(String[] emailValues, EmailInfo emailInfo) {
         try {
-            HtmlEmail email = new HtmlEmail();
+            ImageHtmlEmail email = new ImageHtmlEmail();
             
             // 设置服务器地址
             email.setHostName(emailValues[0]);
@@ -92,10 +98,16 @@ public class HtmlEmailUtil {
             if(StringUtils.isNotBlank(emailValues[6]) && pattern.matcher(emailValues[6]).matches()) {            	
             	email.setSocketTimeout(Integer.parseInt(emailValues[6]));
             }
-            // 开启deBug模式（输出debug信息）
+            // 设置开启deBug模式（输出debug信息）
             if(StringUtils.isNotBlank(emailValues[7]) && emailValues[7].equals("true")) {            	
             	email.setDebug(true);
             }
+            // 设置解析html中的本地图片和网络图片,添加DataSourceFileResolver用于解析本地图片
+            DataSourceResolver[] dataSourceResolvers = 
+    				new DataSourceResolver[]{new DataSourceFileResolver(),
+    	    		new DataSourceUrlResolver(new URL("http://")),
+    				new DataSourceUrlResolver(new URL("https://"))};
+            email.setDataSourceResolver(new DataSourceCompositeResolver(dataSourceResolvers));
             
             // 设置标题
             email.setSubject(emailInfo.getSubject());
@@ -130,7 +142,7 @@ public class HtmlEmailUtil {
                     email.addBcc(bccAddress.get(i));
                 }
             }
-
+ 
             email.send();
             return true;
         } catch (Exception e) {
