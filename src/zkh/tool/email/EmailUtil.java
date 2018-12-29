@@ -146,8 +146,7 @@ public class EmailUtil {
             email.send();
             return true;
         } catch (Exception e) {
-        	e.printStackTrace();
-            logger.error("发送邮件：" + e.getMessage());
+        	logger.error(e.getMessage());
             return false;
         }
     }
