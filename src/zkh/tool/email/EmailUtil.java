@@ -98,7 +98,7 @@ public class EmailUtil {
             if(StringUtils.isNotBlank(emailValues[6]) && pattern.matcher(emailValues[6]).matches()) {            	
             	email.setSocketTimeout(Integer.parseInt(emailValues[6]));
             }
-            // 设置开启deBug模式（输出debug信息）
+            // 设置开启deBug调试模式（输出debug信息）
             if(StringUtils.isNotBlank(emailValues[7]) && emailValues[7].equals("true")) {            	
             	email.setDebug(true);
             }
