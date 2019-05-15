@@ -1,11 +1,13 @@
 package zkh.tool.list;
 
-import java.lang.reflect.Field;  
+import java.lang.reflect.Method;
 import java.text.NumberFormat;  
 import java.util.Collections;  
 import java.util.Comparator;  
 import java.util.Date;  
-import java.util.List;  
+import java.util.List;
+
+import zkh.tool.bean.BeanUtil;  
   
 /** 
  * 排序
@@ -108,11 +110,10 @@ public class ListSortUtil {
      */  
     private static <E> int compareObject(final String sortname, final boolean isAsc, E a, E b) throws Exception {  
         int ret;  
-        Object value1 = ListSortUtil.forceGetFieldValue(a, sortname);  
-        Object value2 = ListSortUtil.forceGetFieldValue(b, sortname);  
+        Object value1 = ListSortUtil.getValueByKey(a, sortname);  
+        Object value2 = ListSortUtil.getValueByKey(b, sortname);  
         String str1 = value1==null?null:value1.toString();  
         String str2 = value2==null?null:value2.toString();  
-        
         
         if(str1 == null || str2 == null) {
 		}else if(value1 instanceof Number){  
@@ -171,28 +172,19 @@ public class ListSortUtil {
     }  
   
     /** 
-     * 获取指定对象的指定属性值（去除private,protected的限制） 
-     *  
-     * @param obj 
-     *            属性名称所在的对象 
-     * @param fieldName 
-     *            属性名称 
-     * @return 
-     * @throws Exception 
+     * 获取指定对象的指定属性值
      */  
-    public static Object forceGetFieldValue(Object obj, String fieldName) throws Exception {  
-        Field field = obj.getClass().getDeclaredField(fieldName);  
-        Object object = null;  
-        boolean accessible = field.isAccessible();  
-        if(!accessible){  
-            // 如果是private,protected修饰的属性，需要修改为可以访问的  
-            field.setAccessible(true);  
-            object = field.get(obj);  
-            // 还原private,protected属性的访问性质  
-            field.setAccessible(accessible);  
-            return object;  
-        }  
-        object = field.get(obj);  
-        return object;  
-    }  
+    private static Object getValueByKey(Object obj, String key) throws Exception {
+    	Class<?> clazz = obj.getClass();
+    	// 重组正确的Class（过滤类名后带着的类_$$_jvstfaa_1字符串）
+    	String clazzStr = clazz.toString();
+    	int _len = clazzStr.indexOf("_");
+    	if(_len>0) {
+    		clazz = Class.forName(clazzStr.substring(0, _len).replace("class ", ""));    		    		
+    	}
+    	// 获得属性的get方法
+    	Method method = BeanUtil.getGetMethodByFieldName(clazz, key);
+        Object value = method.invoke(obj, new Object[] {});    
+        return value;
+    }
 }  

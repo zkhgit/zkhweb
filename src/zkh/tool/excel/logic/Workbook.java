@@ -47,7 +47,7 @@ public class Workbook {
 	 * @return
 	 * @throws Exception
 	 */
-	public static org.apache.poi.ss.usermodel.Workbook readerBigData(FileInputStream fis, String excelPath) {
+	public static org.apache.poi.ss.usermodel.Workbook readerBigData(FileInputStream fis) {
 		org.apache.poi.ss.usermodel.Workbook workbook = null;
 		try {
 			workbook = new SXSSFWorkbook(new XSSFWorkbook(fis), 100);

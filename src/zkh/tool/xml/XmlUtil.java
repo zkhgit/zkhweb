@@ -16,6 +16,20 @@ import org.dom4j.io.SAXReader;
  */
 public class XmlUtil {
 
+	public static Document getDocument(File file) {
+		// 1.创建一个xml解析器对象
+		SAXReader reader = new SAXReader();
+		// 2.读取xml文档，返回Document对象
+		Document document = null;
+		try {
+			document = reader.read(file);
+		} catch (DocumentException e) {
+			System.out.println("读取XML文件 时出错");
+			e.printStackTrace();
+		}
+		return document;
+	}
+	
 	/**
 	 * 通过xml文件路径得到整个Document
 	 * @param filePath

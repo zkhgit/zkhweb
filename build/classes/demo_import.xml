@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<excel>
+	<SysEmployee class="com.synchrobit.uip.system.entity.SysEmployee" sheet="1">
+		<property column="A" name="techTitle" minValue="2" maxValue="30" required="true"/>
+		<object name="sysUser">
+			<property column="B" name="loginId" minLength="1" maxLength="50" required="true" unique="true"/>
+			<property column="C" name="name" minLength="1" maxLength="50" required="true"/>
+			<property column="D" name="sex" minLength="1" maxLength="50" required="true"/>
+			<property column="E" name="email" minLength="1" maxLength="50" required="true"/>
+			<property column="F" name="phone" minLength="1" maxLength="50" required="true"/>
+		</object>
+	</SysEmployee>
+</excel>

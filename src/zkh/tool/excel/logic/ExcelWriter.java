@@ -1,7 +1,6 @@
 package zkh.tool.excel.logic;
 
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -15,8 +14,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -26,14 +24,15 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import zkh.tool.date.common.Format;
+import zkh.tool.bean.BeanUtil;
 import zkh.tool.list.ListSplitUtil;
-
 
 /**
  * POI导出格式Excel文件
@@ -49,7 +48,7 @@ public class ExcelWriter<T> {
     private String [] headerNames; // 变量字段名
     private String [] fieldNames; // 数据字段名
     private String title; // sheet第一行的大标题
-    private String format; // 时间格式化
+    private String format="yyyy-MM-dd HH:mm:ss"; // 时间格式化
     // 内部临时参数
     private Map<String, CellStyle> styles;
     private int sheetNum; // 当前sheet的下表，从0开始
@@ -57,16 +56,13 @@ public class ExcelWriter<T> {
     private int rownum; // row行下标
     private Workbook workbook;
     private CellStyle dataStyle = null; // 主数据单元格的格式
-    
  	public String exceptionMsg = null; // 全局异常
- 	
     
-    public ExcelWriter(String title, String [] headerNames, String [] fieldNames, String format, Workbook workbook, Map<String, CellStyle> customStyles) {
+    public ExcelWriter(String title, String [] headerNames, String [] fieldNames, Workbook workbook, Map<String, CellStyle> customStyles) {
         // 这些参数放在构造方法里是只是为了使用方便
         this.headerNames = headerNames;
         this.fieldNames = fieldNames;
         this.title = title;
-        this.format = StringUtils.isBlank(format)?Format.SIMPLE:format;
         // 获取workbook
         this.workbook = workbook;
         // 准备Excel样式
@@ -90,7 +86,7 @@ public class ExcelWriter<T> {
                 pageSize = (pageSize <= 0 || pageSize >= 1000000) ? 1000000 : pageSize;
             }
             // 按pageSize分割主数据list
-            List<List<T>> list = ListSplitUtil.split(data, pageSize);
+            List<List<T>> list =  ListSplitUtil.split(data, pageSize);
             for (int i = 0; i < list.size(); i++) {
                 this.sheetNum = i;
                 this.data = list.get(i);
@@ -169,8 +165,7 @@ public class ExcelWriter<T> {
     		Iterator<T> it = this.data.iterator(); 
     		Class<? extends Object> tCls = null; // 当前对象的class  
     		String[] fieldNamesChild = null; // 主要为了处理"user.office.officeName"复杂属性
-    		String getMethodName = null; // 当前一级属性的get方法名
-    		String fieldName = null; // 当前属性名称，可以是一级属性user，也可以是二三级属性 office，officeName
+    		String fieldName = null; // 当前属性名称，可以是一级属性user，也可以是二三级属性 office.officeName
     		Method getMethod = null; // 当前一级属性的get方法
     		String[] change = null; // 类型转换（例如：1:男;2:女）
     		int len = -1; // '|'字符的下标
@@ -189,6 +184,7 @@ public class ExcelWriter<T> {
     				cell.setCellStyle(this.dataStyle);
     				len = this.fieldNames[i].indexOf("|"); // |字符的下标
     				
+    				// 是否含需要转换类型的参数
     				if(len!=-1) {
     					// 类型转换（例如：1:男;2:女）
     					change = this.fieldNames[i].substring(len+1).split(";");
@@ -199,12 +195,10 @@ public class ExcelWriter<T> {
     					// 获取属性名数组（针对复杂对象，否则可以不必转为数组）
     					fieldNamesChild = this.fieldNames[i].split("\\.");
     				}
-    				// 获取一级属性名（如user的id、name等属性）
+    				// 获取属性名（如id、name、org.id）
     				fieldName = fieldNamesChild[0];
-    				// 拼接一级属性的get方法名
-    				getMethodName = Common.getMethodName(fieldName, "get");
     				// 获取一级属性的get方法
-    				getMethod = tCls.getMethod(getMethodName, new Class[] {});
+    				getMethod = BeanUtil.getGetMethodByFieldName(tCls, fieldName);
     				// 获取一级属性的值
     				Object value = getMethod.invoke(t, new Object[] {});
     				// 获取多级对象的属性值，一般用得到，当对象属性为复杂对象（user.office.officeName）时，循环获取多级属性的最终值(officeName)
@@ -280,29 +274,27 @@ public class ExcelWriter<T> {
      * @param obj
      * @param key
      * @return
+     * @throws Exception 
      */
-    private Object getValueByKey(Object obj, String key) {
-        // 得到类对象
-        Class<? extends Object> userCla = (Class<? extends Object>) obj.getClass();
-        // 得到类中的所有属性集合
-        Field[] fs = userCla.getDeclaredFields();
-        for (int i = 0; i < fs.length; i++) {
-            Field f = fs[i];
-            // 设置些属性是可以访问的，主要针对private
-            f.setAccessible(true);
-            try {
-                if (f.getName().endsWith(key)) {
-                    return f.get(obj);
-                }
-            } catch (Exception e) {
-            	logger.error("public static Object getValueByKey(Object obj, String key)");
-                logger.error("导出Excel时: 通过对象和属性名获取属性值出错!");
-                exceptionMsg = "导出Excel时: 通过对象和属性名获取属性值出错!";
-                e.printStackTrace();
-            }
-        }
-        // 没有查到时返回空字符串
-        return "";
+    private Object getValueByKey(Object obj, String key) throws Exception {
+    	Class<?> clazz = obj.getClass();
+    	// 重组正确的Class（过滤类名后带着的类_$$_jvstfaa_1字符串）
+    	String clazzStr = clazz.toString();
+    	int _len = clazzStr.indexOf("_");
+    	if(_len>0) {
+    		clazz = Class.forName(clazzStr.substring(0, _len).replace("class ", ""));    		    		
+    	}
+    	// 获得属性的get方法
+    	Method method = BeanUtil.getGetMethodByFieldName(clazz, key);
+        // 拿到get方法上的时间格式化注解,时间类型时有用
+		DateTimeFormat dateTimeFormat = method.getAnnotation(DateTimeFormat.class);
+		if(dateTimeFormat == null || StringUtils.isBlank(dateTimeFormat.pattern())) {
+			this.format = "yyyy-MM-dd";
+		}else {
+			this.format = dateTimeFormat.pattern();
+		}
+        Object value = method.invoke(obj, new Object[] {});    
+        return value;
     }
     
     /**
@@ -323,7 +315,7 @@ public class ExcelWriter<T> {
               Font titleFont = workbook.createFont();
               titleFont.setFontName("Arial");
               titleFont.setFontHeightInPoints((short)14);
-              titleFont.setBold(true);
+//              titleFont.setBoldweight(Font.BOLDWEIGHT_BOLD); // poi-4.x下不可用，poi-3.14下可用
               style.setFont(titleFont);
               styles.put("title", style);         
           }
@@ -331,14 +323,17 @@ public class ExcelWriter<T> {
           // 小标题的样式
           if(customStyles == null || customStyles.get("header") == null) {
               style = workbook.createCellStyle();
+//            style.setAlignment(CellStyle.ALIGN_CENTER); // 水平居中间 poi-3.14
               style.setAlignment(HorizontalAlignment.CENTER); // 水平居中间
+//            style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);//垂直居中 poi-3.14
               style.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
               style.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
-              style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            style.setFillPattern((short)1); // poi-3.14
+              style.setFillPattern(FillPatternType.NO_FILL); // poi_4.x没测试
               Font headerFont = workbook.createFont();
               headerFont.setFontName("Arial");
               headerFont.setFontHeightInPoints((short)10);
-              headerFont.setBold(true);
+//            headerFont.setBoldweight((short)700); // poi-3.14可用
               headerFont.setColor(IndexedColors.WHITE.getIndex());
               style.setFont(headerFont);
               styles.put("header", style);        
@@ -347,15 +342,21 @@ public class ExcelWriter<T> {
           // 主数据列的样式
           if(customStyles==null || customStyles.get("data") == null) {        
               style = workbook.createCellStyle();
-              style.setAlignment(HorizontalAlignment.CENTER); // 水平居中间 
+//            style.setAlignment(CellStyle.ALIGN_CENTER); // 水平居中间 poi-3.14
+              style.setAlignment(HorizontalAlignment.CENTER); // 水平居中间
+//            style.setVerticalAlignment(CellStyle.VERTICAL_CENTER);//垂直居中 poi-3.14
               style.setVerticalAlignment(VerticalAlignment.CENTER);//垂直居中
-              style.setBorderRight(BorderStyle.THIN);
+//            style.setBorderRight((short)1); // poi-3.14
+              style.setBorderRight(BorderStyle.THIN); // poi-4.x没测试
               style.setRightBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-              style.setBorderLeft(BorderStyle.THIN);
+//              style.setBorderLeft((short)1); // poi-3.14
+              style.setBorderLeft(BorderStyle.THIN); // poi-4.x没测试
               style.setLeftBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-              style.setBorderTop(BorderStyle.THIN);
+//              style.setBorderTop((short)1); // poi-3.14
+              style.setBorderTop(BorderStyle.THIN); // poi-4.x没测试
               style.setTopBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-              style.setBorderBottom(BorderStyle.THIN);
+//              style.setBorderBottom((short)1); // poi-3.14
+              style.setBorderBottom(BorderStyle.THIN); // poi-4.x没测试
               style.setBottomBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
               Font dataFont = workbook.createFont();
               dataFont.setFontName("Arial");
