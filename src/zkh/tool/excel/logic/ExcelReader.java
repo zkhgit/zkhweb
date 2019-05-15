@@ -19,7 +19,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.dom4j.Document;
 import org.dom4j.Element;
-import org.poslink.web.shiro.util.ShiroUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -190,7 +189,8 @@ public class ExcelReader {
 			if(!isObject && !isList) {rowErrorMsg = "";};
 			// Excel中当前行下标（从0开始）
 			rowIndex = row.getRowNum();
-			UserInfo userInfo  = (UserInfo)ShiroUtils.getUser();
+			UserInfo userInfo  = new UserInfo();
+			userInfo.setUserId("123");
 			// 行错误信息
 			rowErrorMsgBase = "[第" + (rowIndex+1) + "行]=>";
 			

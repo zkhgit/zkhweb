@@ -4,7 +4,6 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.poslink.web.shiro.util.ShiroUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
@@ -29,8 +28,8 @@ public class WebSocketConfiguration extends ServerEndpointConfig.Configurator {
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 		/*如果没有ServletRequest监听器，那么这里获取到的HttpSession（获取shiro的session时不需要ServletRequest监听器）是null*/
-		sec.getUserProperties().put("sessionId", ShiroUtils.getSession().getId());
-        sec.getUserProperties().put("userInfo", (UserInfo)ShiroUtils.getUser()); // sec.getUserProperties() webSocket提供的用于存放当前用户信息的，此处存储了当前登录用户
+		sec.getUserProperties().put("sessionId", "123");
+        sec.getUserProperties().put("userInfo", new UserInfo()); // sec.getUserProperties() webSocket提供的用于存放当前用户信息的，此处存储了当前登录用户
 	}
 	
 	@Bean

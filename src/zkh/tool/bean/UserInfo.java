@@ -3,14 +3,12 @@ package zkh.tool.bean;
 import java.util.List;
 import java.util.Set;
 
-import org.poslink.web.shiro.model.Account;
-
 /**
  * UserInfo存放在SESSION中的用户信息.
  * 
  * @author lyx
  */
-public class UserInfo implements Account {
+public class UserInfo {
 
 	private static final long serialVersionUID = 781831901061053384L;
 	

@@ -19,7 +19,6 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.dom4j.Document;
 import org.dom4j.Element;
-import org.poslink.web.shiro.util.ShiroUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -209,7 +208,8 @@ public class WordReader2007 {
 	        }
 	        /**4、记录行错误信息****************************************************************************/
 	        // 获得当前用户，进度条使用
-			UserInfo userInfo  = (UserInfo)ShiroUtils.getUser();
+	        UserInfo userInfo  = new UserInfo();
+			userInfo.setUserId("123");
 	        // 进度条
 	        new ImportProgress().sendToUser("验证数据，正在处理" + rowIndex + "/" + (rows-1) + rowErrorMsg, userInfo.getUserId());
 		} catch (Exception e) {
